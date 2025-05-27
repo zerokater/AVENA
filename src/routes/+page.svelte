@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
-  let pdfUrl = '';
   let reinigung = 'MRDTOF34';
   let name = 'Fatbardh Berisha';
   let adresse = 'Teststrasse 5';
@@ -32,7 +29,7 @@
     return total() + mwstBetrag();
   }
 
-  async function updatePreview() {
+  async function downloadPDF() {
     try {
       const res = await fetch('/preview', {
         method: 'POST',
@@ -54,105 +51,150 @@
       }
 
       const blob = await res.blob();
-      pdfUrl = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${reinigung}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       console.error('Fehler bei fetch:', e);
     }
   }
 
-  onMount(() => {
-    updatePreview();
-  });
+  // async function updatePreview() {
+  //   try {
+  //     const res = await fetch('/preview', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         offertnummer: reinigung,
+  //         name,
+  //         adresse,
+  //         plz,
+  //         items,
+  //         mwst
+  //       })
+  //     });
+
+  //     if (!res.ok) {
+  //       const errText = await res.text();
+  //       console.error('PDF-Generierung fehlgeschlagen:', errText);
+  //       return;
+  //     }
+
+  //     const blob = await res.blob();
+  //     pdfUrl = URL.createObjectURL(blob);
+  //   } catch (e) {
+  //     console.error('Fehler bei fetch:', e);
+  //   }
+  // }
+
+  // onMount(() => {
+  //   updatePreview();
+  // });
 </script>
 
 <style>
   :global(body) {
     margin: 0;
     font-family: 'Arial', sans-serif;
-  }
-
-  .flex-container {
+    background-color: #f5f7fa;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 2rem;
+    align-items: center;
+    justify-content: center;
   }
 
-  @media(min-width: 768px) {
-    .flex-container {
-      flex-direction: row;
-    }
+  .form-wrapper {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
   }
 
-  .left-panel {
-    flex: 1;
-    max-width: 500px;
+  .form-group {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    margin-bottom: 2rem;
   }
 
-  .right-panel {
-    flex: 2;
-  }
-
-  input, select, label, button {
-    font-size: 1rem;
+  label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
   }
 
   input, select {
-    padding: 0.5rem;
+    padding: 0.6rem 0.8rem;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 8px;
+    font-size: 1rem;
     width: 100%;
+    box-sizing: border-box;
   }
 
   button {
-    background-color: #333;
+    background-color: #0175ff;
     color: white;
     border: none;
-    padding: 0.6rem 1rem;
-    border-radius: 5px;
+    padding: 0.75rem 1.2rem;
+    border-radius: 8px;
+    font-size: 1rem;
     cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   button:hover {
-    background-color: #555;
+    background-color: #0160d1;
   }
 
   .leistungen-section {
-    border: 1px solid #ddd;
+    background-color: #f9f9f9;
     padding: 1rem;
     border-radius: 8px;
-    background-color: #f9f9f9;
+    margin-bottom: 2rem;
+    border: 1px solid #ddd;
   }
 
   .leistungen-title {
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-    color: #0175ff;
+    font-size: 1rem;
     font-weight: bold;
+    color: #0175ff;
+    margin-bottom: 1rem;
   }
 
   .item-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 80px 100px auto;
     gap: 0.5rem;
     align-items: center;
     margin-bottom: 0.75rem;
   }
 
   .item-row input {
-    flex: 1 1 100px;
-    min-width: 80px;
+    width: 100%;
   }
 
   .item-row button {
     background-color: #e74c3c;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
+    border: none;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
     font-weight: bold;
-    font-size: 0.9rem;
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    max-width: 40px;
+    text-align: center;
   }
 
   .item-row button:hover {
@@ -161,59 +203,90 @@
 
   .totals {
     margin-top: 1rem;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #ddd;
     padding-top: 1rem;
+    font-size: 1rem;
   }
 
-  iframe {
-    width: 100%;
-    height: 80vh;
-    border: none;
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .form-wrapper {
+      padding: 1.5rem;
+    }
+
+    .item-row {
+      grid-template-columns: 1fr;
+    }
+
+    .item-row button {
+      max-width: none;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
   }
 </style>
 
-<div class="flex-container">
-  <div class="left-panel">
-    <label>REINIGUNG NR:<input bind:value={reinigung} /></label>
-    <label>Vorname Name:<input bind:value={name} /></label>
-    <label>Adresse:<input bind:value={adresse} /></label>
-    <label>PLZ:<input bind:value={plz} /></label>
 
-    <div class="leistungen-section">
-      <div class="leistungen-title">Leistungen</div>
-      {#each items as item, i}
-        <div class="item-row">
-          <input type="text" list={`options-${i}`} bind:value={item.title} placeholder="Bezeichnung" />
-          <datalist id={`options-${i}`}>
-            <option value="Reinigung 2.5 Zimmer-Wohnung" />
-            <option value="Reinigung 3.5 Zimmer-Wohnung" />
-            <option value="Reinigung 4.5 Zimmer-Wohnung" />
-            <option value="Reinigung 5.5 Zimmer-Wohnung" />
-          </datalist>
-          <input type="number" min="1" bind:value={item.qty} placeholder="Menge" />
-          <input type="number" step="0.01" min="0" bind:value={item.price} placeholder="Preis" />
-          <button on:click={() => removeItem(i)}>✕</button>
-        </div>
-      {/each}
-      <button on:click={addItem}>+ Artikel</button>
-    </div>
 
-    <label><input type="checkbox" bind:checked={mwst} /> MwSt. 8.1%</label>
+<div class="form-wrapper">
+  <div class="form-group">
+    <label>OFFERTE NR:</label>
+    <input bind:value={reinigung} />
 
-    <div class="totals">
-      <p>Zwischensumme: Fr. {total().toFixed(2)}</p>
-      {#if mwst}
-        <p>+ MwSt (8.1%): Fr. {mwstBetrag().toFixed(2)}</p>
-      {/if}
-      <p><strong>Total: Fr. {totalMitMwst().toFixed(2)}</strong></p>
-    </div>
+    <label>Vorname Name:</label>
+    <input bind:value={name} />
 
-    <button on:click={updatePreview}>Vorschau aktualisieren</button>
+    <label>Adresse:</label>
+    <input bind:value={adresse} />
+
+    <label>PLZ:</label>
+    <input bind:value={plz} />
   </div>
 
-  <div class="right-panel">
-    {#if pdfUrl}
-      <iframe title="Live PDF Vorschau" src={pdfUrl}></iframe>
+  <div class="leistungen-section">
+    <div class="leistungen-title">Leistungen</div>
+    {#each items as item, i}
+      <div class="item-row">
+        <input type="text" list={`options-${i}`} bind:value={item.title} placeholder="Bezeichnung" />
+        <datalist id={`options-${i}`}>
+          <option value="Reinigung 2.5 Zimmer-Wohnung" />
+          <option value="Reinigung 3.5 Zimmer-Wohnung" />
+          <option value="Reinigung 4.5 Zimmer-Wohnung" />
+          <option value="Reinigung 5.5 Zimmer-Wohnung" />
+        </datalist>
+        <input type="number" min="1" bind:value={item.qty} placeholder="Menge" />
+        <input type="number" step="0.01" min="0" bind:value={item.price} placeholder="Preis" />
+        <button on:click={() => removeItem(i)}>✕</button>
+      </div>
+    {/each}
+    <button on:click={addItem}>+ Artikel</button>
+  </div>
+
+<div class="checkbox-label">
+  <input type="checkbox" bind:checked={mwst} />
+  <span>MwSt. 8.1%</span>
+</div>
+
+
+  <div class="totals">
+    <p>Zwischensumme: Fr. {total().toFixed(2)}</p>
+    {#if mwst}
+      <p>+ MwSt (8.1%): Fr. {mwstBetrag().toFixed(2)}</p>
     {/if}
+    <p><strong>Total: Fr. {totalMitMwst().toFixed(2)}</strong></p>
   </div>
+
+  <button on:click={downloadPDF}>PDF herunterladen</button>
 </div>
