@@ -9,7 +9,7 @@
   let mwst = false;
 
   let items = [
-    { title: 'Reinigung 2.5 Zimmer-Wohnung', qty: 1, price: 0 }
+    { title: 'Reinigung 2.5 Zimmer-Wohnung', qty: 1, price: 10 }
   ];
 
   function addItem() {
@@ -33,26 +33,31 @@
   }
 
   async function updatePreview() {
-    const res = await fetch('/preview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        offertnummer: reinigung,
-        name,
-        adresse,
-        plz,
-        items,
-        mwst
-      })
-    });
+    try {
+      const res = await fetch('/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offertnummer: reinigung,
+          name,
+          adresse,
+          plz,
+          items,
+          mwst
+        })
+      });
 
-    if (!res.ok) {
-      console.error('PDF-Generierung fehlgeschlagen');
-      return;
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('PDF-Generierung fehlgeschlagen:', errText);
+        return;
+      }
+
+      const blob = await res.blob();
+      pdfUrl = URL.createObjectURL(blob);
+    } catch (e) {
+      console.error('Fehler bei fetch:', e);
     }
-
-    const blob = await res.blob();
-    pdfUrl = URL.createObjectURL(blob);
   }
 
   onMount(() => {
@@ -142,7 +147,6 @@
     min-width: 80px;
   }
 
-
   .item-row button {
     background-color: #e74c3c;
     padding: 0.4rem 0.8rem;
@@ -213,4 +217,3 @@
     {/if}
   </div>
 </div>
-
