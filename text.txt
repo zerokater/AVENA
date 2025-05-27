@@ -1,0 +1,34 @@
+<script lang="ts">
+  let pdfUrl = '';
+
+  async function downloadPDF() {
+    console.log('Button wurde gedrückt');
+
+    const res = await fetch('/', { method: 'POST' });
+
+    if (!res.ok) {
+      alert('Fehler beim Generieren');
+      return;
+    }
+
+    const blob = await res.blob();
+    pdfUrl = URL.createObjectURL(blob); // ✅ Vorschau-URL setzen
+
+    // ✅ Optional: Download trotzdem starten
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = 'offerte.pdf';
+    a.click();
+    URL.revokeObjectURL(a.href); // Optional: URL wieder freigeben
+  }
+</script>
+
+<button on:click={downloadPDF}>PDF generieren</button>
+
+{#if pdfUrl}
+  <iframe
+    title="PDF-Vorschau"
+    src={pdfUrl}
+    style="width: 100%; height: 80vh; border: 1px solid #ccc; margin-top: 1rem;"
+  ></iframe>
+{/if}
