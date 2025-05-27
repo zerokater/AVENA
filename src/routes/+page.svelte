@@ -33,7 +33,7 @@
   }
 
   async function updatePreview() {
-    const res = await fetch('/', {
+    const res = await fetch('/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -213,3 +213,4 @@
     {/if}
   </div>
 </div>
+
