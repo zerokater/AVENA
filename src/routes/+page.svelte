@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { writable } from 'svelte/store';
 
   let pdfUrl = '';
   let reinigung = 'MRDTOF34';
@@ -62,29 +61,110 @@
 </script>
 
 <style>
+  :global(body) {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+  }
+
   .flex-container {
     display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 2rem;
+  }
+
+  @media(min-width: 768px) {
+    .flex-container {
+      flex-direction: row;
+    }
+  }
+
+  .left-panel {
+    flex: 1;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
   }
-  .left-panel {
-    width: 300px;
-  }
+
   .right-panel {
-    flex: 1;
+    flex: 2;
   }
+
+  input, select, label, button {
+    font-size: 1rem;
+  }
+
   input, select {
-    display: block;
-    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     width: 100%;
   }
+
+  button {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #555;
+  }
+
+  .leistungen-section {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+
+  .leistungen-title {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    color: #0175ff;
+    font-weight: bold;
+  }
+
   .item-row {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
     flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
   }
-  .item-row input, .item-row select {
-    flex: 1;
+
+  .item-row input {
+    flex: 1 1 100px;
+    min-width: 80px;
+  }
+
+
+  .item-row button {
+    background-color: #e74c3c;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+
+  .item-row button:hover {
+    background-color: #c0392b;
+  }
+
+  .totals {
+    margin-top: 1rem;
+    border-top: 1px solid #ccc;
+    padding-top: 1rem;
+  }
+
+  iframe {
+    width: 100%;
+    height: 80vh;
+    border: none;
   }
 </style>
 
@@ -95,41 +175,41 @@
     <label>Adresse:<input bind:value={adresse} /></label>
     <label>PLZ:<input bind:value={plz} /></label>
 
-    {#each items as item, i}
-      <div class="item-row">
-        <input type="text" list={`options-${i}`} bind:value={item.title} placeholder="Bezeichnung" />
-        <datalist id={`options-${i}`}>
-          <option value="Reinigung 2.5 Zimmer-Wohnung" />
-          <option value="Reinigung 3.5 Zimmer-Wohnung" />
-          <option value="Reinigung 4.5 Zimmer-Wohnung" />
-          <option value="Reinigung 5.5 Zimmer-Wohnung" />
-        </datalist>
-        <input type="number" min="1" bind:value={item.qty} placeholder="Menge" />
-        <input type="number" step="0.01" min="0" bind:value={item.price} placeholder="Preis" />
-        <span>Fr. {(item.qty * item.price).toFixed(2)}</span>
-        <button on:click={() => removeItem(i)}>✕</button>
-      </div>
-    {/each}
-
-    <button on:click={addItem}>+ Artikel</button>
+    <div class="leistungen-section">
+      <div class="leistungen-title">Leistungen</div>
+      {#each items as item, i}
+        <div class="item-row">
+          <input type="text" list={`options-${i}`} bind:value={item.title} placeholder="Bezeichnung" />
+          <datalist id={`options-${i}`}>
+            <option value="Reinigung 2.5 Zimmer-Wohnung" />
+            <option value="Reinigung 3.5 Zimmer-Wohnung" />
+            <option value="Reinigung 4.5 Zimmer-Wohnung" />
+            <option value="Reinigung 5.5 Zimmer-Wohnung" />
+          </datalist>
+          <input type="number" min="1" bind:value={item.qty} placeholder="Menge" />
+          <input type="number" step="0.01" min="0" bind:value={item.price} placeholder="Preis" />
+          <button on:click={() => removeItem(i)}>✕</button>
+        </div>
+      {/each}
+      <button on:click={addItem}>+ Artikel</button>
+    </div>
 
     <label><input type="checkbox" bind:checked={mwst} /> MwSt. 8.1%</label>
-    <p>Zwischensumme: Fr. {total().toFixed(2)}</p>
-    {#if mwst}
-      <p>+ MwSt (8.1%): Fr. {mwstBetrag().toFixed(2)}</p>
-    {/if}
-    <p><strong>Total: Fr. {totalMitMwst().toFixed(2)}</strong></p>
+
+    <div class="totals">
+      <p>Zwischensumme: Fr. {total().toFixed(2)}</p>
+      {#if mwst}
+        <p>+ MwSt (8.1%): Fr. {mwstBetrag().toFixed(2)}</p>
+      {/if}
+      <p><strong>Total: Fr. {totalMitMwst().toFixed(2)}</strong></p>
+    </div>
 
     <button on:click={updatePreview}>Vorschau aktualisieren</button>
   </div>
 
   <div class="right-panel">
     {#if pdfUrl}
-      <iframe
-        title="Live PDF Vorschau"
-        src={pdfUrl}
-        style="width: 100%; height: 100vh; border: none;"
-      ></iframe>
+      <iframe title="Live PDF Vorschau" src={pdfUrl}></iframe>
     {/if}
   </div>
 </div>
